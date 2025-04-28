@@ -41,9 +41,11 @@ INSTALLED_APPS = [
     'services',
     'bot',
     'websocket',
+    'django_celery_beat',
     'aimodule',
     'corsheaders',
     'rest_framework',
+    'celery',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_swagger',
@@ -156,10 +158,23 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": ["redis://:Rhbgnjy2004@127.0.0.1:6379/0"],
+            "hosts": [
+                "redis://:Rhbgnjy2004@redis-secure:6379/0"  # 🔥 пароль вставляется в URL
+            ],
         },
     },
 }
+
+# Celery broker - RabbitMQ
+CELERY_BROKER_URL = 'amqp://RasulZT:Rhbgnjy2004@rabbitmq:5672//'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+
+
 import os
 
 STATIC_URL = '/static/'
@@ -168,3 +183,8 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 
 JAVA_BOT_TOKEN = config("JAVA_BOT_TOKEN")
+
+
+CELERY_TIMEZONE = "Asia/Almaty"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60

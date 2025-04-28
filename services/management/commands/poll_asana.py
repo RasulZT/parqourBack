@@ -12,5 +12,5 @@ class Command(BaseCommand):
             asana_data = AsanaService.fetch_task_detail(ticket.asana_issue_id)
             AsanaService._process_task_detail(ticket, asana_data)
 
-        AsanaService.fetch_tasks_and_update()
-        self.stdout.write("🎯 Asana sync complete.")
+
+        self.stdout.write("🎯 Asana sync complete.22")

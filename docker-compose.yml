@@ -1,0 +1,91 @@
+version: '3.9'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parqour-django
+    restart: always
+    command: daphne -b 0.0.0.0 -p 8001 ParqourBotBack.asgi:application
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+      - rabbitmq
+      - postgres
+    env_file:
+      - .env
+    networks:
+      - parqour_net
+
+  redis:
+    image: redis:latest
+    container_name: redis-secure
+    restart: always
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    volumes:
+      - /c/Config/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - parqour_net
+
+  postgres:
+    image: postgres:17
+    container_name: parqour-postgres
+    environment:
+      POSTGRES_DB: parqourBOT
+      POSTGRES_USER: RasulZT
+      POSTGRES_PASSWORD: Rhbgnjy2004
+    ports:
+      - "5432:5432"
+    networks:
+      - parqour_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: parqour-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"    # порт для AMQP (Celery подключается сюда)
+      - "15672:15672"  # порт для веб-интерфейса RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: RasulZT
+      RABBITMQ_DEFAULT_PASS: Rhbgnjy2004
+    networks:
+      - parqour_net
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parqour-celery-worker
+    restart: always
+    command: celery -A ParqourBotBack worker --loglevel=info -P eventlet
+    depends_on:
+      - rabbitmq
+      - redis
+    env_file:
+      - .env
+    networks:
+      - parqour_net
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parqour-celery-beat
+    restart: always
+    command: celery -A ParqourBotBack beat -l info
+    depends_on:
+      - rabbitmq
+      - redis
+    env_file:
+      - .env
+    networks:
+      - parqour_net
+
+networks:
+  parqour_net:
+    driver: bridge
