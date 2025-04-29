@@ -77,7 +77,7 @@ class AsanaService:
     @staticmethod
     def _process_task_detail(ticket, asana_data):
         updated = False
-
+        print(f"fetch Ticket:{ticket} ", flush=True)
         name = asana_data.get("name")
         notes = asana_data.get("notes")
         completed = asana_data.get("completed", False)
@@ -92,29 +92,7 @@ class AsanaService:
             section_data = memberships[0].get("section")
             section = section_data.get("name") if section_data else None
 
-        # status (DONE/CREATED)
-        status = "DONE" if completed else "CREATED"
-
-        # сравниваем и обновляем при необходимости
-        if ticket.summary != name:
-            ticket.summary = name
-            updated = True
-
-        if ticket.description != notes:
-            ticket.description = notes
-            updated = True
-
-        if ticket.comments_updated_time != modified_at:
-            ticket.comments_updated_time = modified_at
-            updated = True
-
-        if ticket.asana_issue_status != status:
-            ticket.asana_issue_status = status
-            updated = True
-
-        if ticket.is_ticket_closed != completed:
-            ticket.is_ticket_closed = completed
-            updated = True
+        print(f"HERE:asana_section:{section},my_Section:{ticket.section} ",flush=True)
 
         if section and ticket.section != section:
             ticket.section = section

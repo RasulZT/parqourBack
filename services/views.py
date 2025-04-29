@@ -13,7 +13,7 @@ from .serializers import TicketSerializer, ParkingSerializer, SupportSessionSeri
 @api_view(['POST'])
 def receive_ticket(request):
     token = request.headers.get('X-API-TOKEN')
-
+    print(f"request:Post{request.body}",flush=True)
     if token != settings.JAVA_BOT_TOKEN:
         return HttpResponseForbidden("❌ Неверный токен доступа")
 

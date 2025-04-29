@@ -8,8 +8,8 @@ from django.utils import timezone
 
 class Parking(models.Model):
     name = models.CharField(max_length=255)
-    host = models.CharField(max_length=255)
-    ip = models.CharField(max_length=255)
+    host = models.CharField(max_length=255,null=True,blank=True)
+    ip = models.CharField(max_length=255,null=True,blank=True)
     google_table_link = models.TextField(null=True, blank=True)
     group_name = models.CharField(max_length=255)
     group_chat_id = models.BigIntegerField(null=True, blank=True)
@@ -35,7 +35,7 @@ class Ticket(models.Model):
     comments_updated_time = models.DateTimeField(null=True, blank=True)
     is_ticket_closed = models.BooleanField(default=False)
     asana_issue_status = models.CharField(max_length=50, choices=AsanaIssueStatus.choices, default='CREATED')
-    section = models.CharField(max_length=50, choices=TicketSection.choices, default='NEW')
+    section = models.CharField(max_length=50, choices=TicketSection.choices, default='Line - 1')
 
 
 # Create your models here.

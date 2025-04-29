@@ -17,9 +17,10 @@ class CriticalityLevel(models.TextChoices):
 
 
 class TicketSection(models.TextChoices):
-    NEW = 'NEW', 'Новая'
-    L2 = 'L2', 'Вторая линия'
-    L3 = 'L3', 'Третья линия'
+    NEW = 'NEW','Новые'
+    L1 = 'Line - 1', 'Первая линия'
+    L2 = 'Line - 2', 'Вторая линия'
+    L3 = 'Line - 3', 'Третья линия'
     CANCELLED = 'CANCELLED', 'Отменено'
     DONE = 'DONE', 'Завершено'
 

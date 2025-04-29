@@ -41,10 +41,7 @@ def ticket_created_handler(sender, instance, created, **kwargs):
                         "telegram_id": user.telegram_id,
                         "telegram_fullname": user.telegram_fullname,
                         "role": user.role,
-                        "phone": user.phone,
-                        "kaspi_phone": user.kaspi_phone,
-                        "address": user.address,
-                        "bonus": user.bonus,
+                        "phone": user.phone_number
                     } if user else None,
 
                     # 🅿️ Паркинг (если есть)
@@ -107,8 +104,10 @@ def send_ticket_update(sender, instance, **kwargs):
 
         if changes:
             channel_layer = get_channel_layer()
+            user = instance.user
+            parking = instance.parking
             message = {
-                "ticket_id": instance.id,
+                "id": instance.id,
                 "full_ticket": {
                     "asana_issue_id": instance.asana_issue_id,
                     "summary": instance.summary,
@@ -120,6 +119,23 @@ def send_ticket_update(sender, instance, **kwargs):
                     "is_ticket_closed": instance.is_ticket_closed,
                     "asana_issue_status": instance.asana_issue_status,
                     "comments_updated_time": instance.comments_updated_time.isoformat() if instance.comments_updated_time else None,
+                    "user": {
+                        "id": user.id,
+                        "telegram_id": user.telegram_id,
+                        "telegram_fullname": user.telegram_fullname,
+                        "role": user.role,
+                        "phone": user.phone_number
+                    } if user else None,
+
+                    # 🅿️ Паркинг (если есть)
+                    "parking": {
+                        "id": parking.id,
+                        "name": parking.name,
+                        "host": parking.host,
+                        "ip": parking.ip,
+                        "group_name": parking.group_name,
+                        "group_chat_id": parking.group_chat_id,
+                    } if parking else None
                 },
                 "changes": changes,
             }
