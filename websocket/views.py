@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 import msgpack
@@ -88,6 +89,10 @@ def send_ticket_update(sender, instance, **kwargs):
         changes = {}
         for field in instance._meta.fields:
             field_name = field.name
+
+            if field_name in ["support_session", "user"]:
+                continue
+
             old_value = getattr(previous_state, field_name)
             new_value = getattr(instance, field_name)
 
@@ -135,11 +140,22 @@ def send_ticket_update(sender, instance, **kwargs):
                         "ip": parking.ip,
                         "group_name": parking.group_name,
                         "group_chat_id": parking.group_chat_id,
-                    } if parking else None
+                    } if parking else None,
+                    "support_session": {
+                        "id": instance.support_session.id,
+                        "active": instance.support_session.active,
+                        "started_at": instance.support_session.started_at.isoformat() if instance.support_session.started_at else None,
+                        "ended_at": instance.support_session.ended_at.isoformat() if instance.support_session.ended_at else None,
+                    } if instance.support_session else None,
                 },
                 "changes": changes,
             }
+            try:
+                print(f"Message update {message}", flush=True)
+                # json.dumps(message)  # Просто проверить, сериализуемо ли
 
+            except Exception as e:
+                print("❌ Ошибка сериализации:", e, flush=True)
             async_to_sync(channel_layer.group_send)(
                 'ticket_group',  # 🔥 используем ту же группу!
                 {

@@ -8,12 +8,23 @@ from django.utils import timezone
 
 class Parking(models.Model):
     name = models.CharField(max_length=255)
-    host = models.CharField(max_length=255,null=True,blank=True)
-    ip = models.CharField(max_length=255,null=True,blank=True)
+    host = models.CharField(max_length=255, null=True, blank=True)
+    ip = models.CharField(max_length=255, null=True, blank=True)
     google_table_link = models.TextField(null=True, blank=True)
     group_name = models.CharField(max_length=255)
     group_chat_id = models.BigIntegerField(null=True, blank=True)
     language_code = models.CharField(max_length=2, choices=LanguageCode.choices, default=LanguageCode.RU)
+
+
+class SupportSession(models.Model):
+    support = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sessions')
+    parking = models.ForeignKey(Parking, on_delete=models.CASCADE)  # 🔄 заменили chat → parking
+    started_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.support} ⇄ {self.parking.group_name}"
 
 
 class Ticket(models.Model):
@@ -31,6 +42,13 @@ class Ticket(models.Model):
     criticality_level = models.CharField(max_length=50, choices=CriticalityLevel.choices, null=True, blank=True)
     summary = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    support_session = models.ForeignKey(
+        SupportSession,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tickets'
+    )
     message_id = models.IntegerField(null=True, blank=True)
     comments_updated_time = models.DateTimeField(null=True, blank=True)
     is_ticket_closed = models.BooleanField(default=False)
@@ -39,16 +57,6 @@ class Ticket(models.Model):
 
 
 # Create your models here.
-class SupportSession(models.Model):
-    support = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sessions')
-    parking = models.ForeignKey(Parking, on_delete=models.CASCADE)  # 🔄 заменили chat → parking
-    ticket = models.ForeignKey(Ticket, on_delete=models.SET_NULL, null=True, blank=True)
-    started_at = models.DateTimeField(auto_now_add=True)
-    ended_at = models.DateTimeField(null=True, blank=True)
-    active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.support} ⇄ {self.parking.group_name}"
 
 
 class SupportMessage(models.Model):

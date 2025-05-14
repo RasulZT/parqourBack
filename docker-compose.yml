@@ -34,6 +34,7 @@ services:
   postgres:
     image: postgres:17
     container_name: parqour-postgres
+    restart: always
     environment:
       POSTGRES_DB: parqourBOT
       POSTGRES_USER: RasulZT

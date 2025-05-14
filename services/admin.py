@@ -11,7 +11,6 @@ class SupportSessionAdmin(admin.ModelAdmin):
         'id',
         'support',
         'parking',
-        'ticket',
         'active',
         'started_at',
         'ended_at',

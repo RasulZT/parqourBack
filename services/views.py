@@ -1,3 +1,7 @@
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny
@@ -13,7 +17,7 @@ from .serializers import TicketSerializer, ParkingSerializer, SupportSessionSeri
 @api_view(['POST'])
 def receive_ticket(request):
     token = request.headers.get('X-API-TOKEN')
-    print(f"request:Post{request.body}",flush=True)
+    print(f"request:Post{request.body}", flush=True)
     if token != settings.JAVA_BOT_TOKEN:
         return HttpResponseForbidden("❌ Неверный токен доступа")
 
@@ -93,8 +97,20 @@ class TicketUpdateUserView(APIView):
                 "new_user_telegram_id": user.telegram_id,
             })
 
+
         except Exception as e:
-            return Response({"error": str(e)}, status=500)
+
+            logger.error("Ошибка при обновлении пользователя у тикета", exc_info=True)
+
+            return Response({
+
+                "error": str(e),
+
+                "type": type(e).__name__,
+
+                "traceback": traceback.format_exc()
+
+            }, status=500)
 
 
 ##Создать сессию
@@ -118,22 +134,27 @@ class SupportSessionCreateView(APIView):
             if not ticket.parking:
                 return Response({"error": "Ticket is not linked to a parking"}, status=400)
 
-            existing = SupportSession.objects.filter(support=support, ticket=ticket).first()
-            if existing:
-                return Response({"error": f"Этот тикет уже взят сапортом"}, status=409)
+            # проверить, не привязан ли тикет уже к сессии
+            if ticket.support_session:
+                return Response({"error": "Этот тикет уже привязан к сессии"}, status=409)
 
-            parking = ticket.parking
+            # найти существующую сессию по сапорту и паркингу
+            session = SupportSession.objects.filter(support=support, parking=ticket.parking, active=True).first()
 
-            # создать сессию
-            session = SupportSession.objects.create(
-                support=support,
-                parking=parking,
-                ticket=ticket
-            )
+            # если нет — создать новую
+            if not session:
+                session = SupportSession.objects.create(
+                    support=support,
+                    parking=ticket.parking
+                )
 
-            # сериализовать ticket и parking
+            # привязать тикет к сессии
+            ticket.support_session = session
+            ticket.save()
+
+            # сериализация
             ticket_data = TicketSerializer(ticket).data
-            parking_data = ParkingSerializer(parking).data
+            parking_data = ParkingSerializer(ticket.parking).data
 
             return Response({
                 "session_id": session.id,
@@ -143,7 +164,17 @@ class SupportSessionCreateView(APIView):
                 "parking": parking_data
             }, status=201)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
 
-##Вернуть все  сессии сапорта
+        except Exception as e:
+
+            logger.error("Ошибка при обновлении пользователя у тикета", exc_info=True)
+
+            return Response({
+
+                "error": str(e),
+
+                "type": type(e).__name__,
+
+                "traceback": traceback.format_exc()
+
+            }, status=500)
